@@ -1,5 +1,6 @@
 package com.example.smarthouse.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,22 +15,27 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.example.smarthouse.data.rooms.Room
+import com.example.smarthouse.data.things.Alarm
+import com.example.smarthouse.data.things.Light
+import com.example.smarthouse.ui.components.templates.DeleteTemplateComponent
 import com.example.smarthouse.ui.theme.Purple10
 
 @Composable
-fun RoomsComponent(rooms: List<Room>, onClick: (Room) -> Unit) {
+fun RoomsComponent(rooms: SnapshotStateList<Room>, onClick: (Room) -> Unit) {
     LazyVerticalGrid(
         GridCells.Fixed(2),
         modifier = Modifier.fillMaxWidth()
     ) {
         items(rooms.size) { index ->
             val room = rooms[index]
+            Log.d("MyTag", "${room.id}")
             Card(
                 modifier = Modifier
                     .padding(10.dp)
@@ -47,6 +53,11 @@ fun RoomsComponent(rooms: List<Room>, onClick: (Room) -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
 
                     ) {
+                    DeleteTemplateComponent(
+                        onClick = {
+                            rooms.remove(room)
+                        }
+                    )
                     Image(
                         painter = room.image,
                         contentDescription = "",
@@ -60,20 +71,19 @@ fun RoomsComponent(rooms: List<Room>, onClick: (Room) -> Unit) {
                         modifier = Modifier.padding(8.dp),
                         color = Color.White
                     )
-
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
-                        text = if (room.light.status) "Свет: Включено" else "Свет: Выключено",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    Text(
-                        text = "Кондиционер " + room.airConditioner.name + ": " + room.airConditioner.temperature.toString() + "°C",
-                        modifier = Modifier.padding(8.dp)
-                    )
+                    room.devices.forEach { device ->
+                        when (device) {
+                            is Light, is Alarm -> Text(
+                                text = if (device.status) device.name + ": " + "Включено" else device.name + ": " + "Выключено",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
